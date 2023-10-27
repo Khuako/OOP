@@ -1,0 +1,95 @@
+def check_empty_seats(func):
+    def wrapper(self, passenger_name):
+        if self.has_empty_seats():
+            return func(self, passenger_name)
+        else:
+            return f"В автобусе нет мест"
+
+    return wrapper
+
+
+def check_passenger_existence(func):
+    def wrapper(self, passenger_name):
+        if passenger_name in self.passengers:
+            return func(self, passenger_name)
+        else:
+            return f"{passenger_name} не в автобусе"
+
+    return wrapper
+
+
+class Bus:
+    def __init__(self, speed, capacity, maxSpeed):
+        self.speed = speed
+        self.capacity = capacity
+        self.maxSpeed = maxSpeed
+        self.passengers = []
+        self.seats = {i: None for i in range(capacity)}
+
+    @check_empty_seats
+    def embark_disembark(self, passenger_name):
+        seat_number = self.get_empty_seat()
+        self.passengers.append(passenger_name)
+        self.seats[seat_number] = passenger_name
+        return f"{passenger_name} посажен(а) в автобус на место {seat_number}"
+
+    @check_passenger_existence
+    def embark_disembark_by_name(self, passenger_name):
+        seat_number = self.get_passenger_seat(passenger_name)
+        self.passengers.remove(passenger_name)
+        self.seats[seat_number] = None
+        return f"{passenger_name} высажен(а) с автобуса"
+
+    def increase_speed(self, value):
+        self.speed += value
+        if self.speed > self.maxSpeed:
+            self.speed = self.maxSpeed
+
+    def decrease_speed(self, value):
+        self.speed -= value
+        if self.speed < 0:
+            self.speed = 0
+
+    def has_empty_seats(self):
+        return None in self.seats.values()
+
+    def get_empty_seat(self):
+        for seat, occupant in self.seats.items():
+            if occupant is None:
+                return seat
+
+    def get_passenger_seat(self, passenger_name):
+        for seat, occupant in self.seats.items():
+            if occupant == passenger_name:
+                return seat
+
+    def __str__(self):
+        return f"Скорость автобуса: {self.speed} Вместимость: {self.capacity} Пассажиры: {', '.join(self.passengers)}"
+
+
+class TouristBus(Bus):
+    def __init__(self, speed, capacity, maxSpeed, amenities):
+        super().__init__(speed, capacity, maxSpeed)
+        self.amenities = amenities
+
+    def __str__(self):
+        return f"Скорость туристического автобуса: {self.speed} Вместимость: {self.capacity} Пассажиры: {', '.join(self.passengers)} Удобства: {', '.join(self.amenities)}"
+
+
+# Пример использования класса:
+bus = Bus(50, 2, 100)
+print(bus.embark_disembark("Alice"))
+print(bus.embark_disembark("Bob"))
+print(bus.embark_disembark("Charlie"))  # The bus is full.
+
+print(bus.embark_disembark_by_name("Alice"))
+print(bus.embark_disembark_by_name("David"))  # David is not on the bus.
+
+tourist_bus = TouristBus(60, 40, 120, ["TV", "WiFi"])
+print(tourist_bus.embark_disembark("Charlie"))
+print(tourist_bus.embark_disembark("David"))
+print(tourist_bus.embark_disembark("Eve"))
+
+
+print(tourist_bus)
+print(bus)
